@@ -16,71 +16,54 @@ function App() {
   }, []);
 
   async function fetchItems(): Promise<void> {
-    try {
-      const response = await axios.get<any[]>(
-        "https://thefridge-api.karapincha.io/fridge"
-      );
+    const response = await axios.get<any[]>(
+      "https://thefridge-api.karapincha.io/fridge"
+    );
 
-      const parsedItems: FridgeList[] = response.data.map((item) => {
-        const expiryDate = parseExpiryDate(item.expiry);
+    const parsedItems: FridgeList[] = response.data.map((item) => {
+      const expiryDate = parseExpiryDate(item.expiry);
+      return {
+        _id: item._id,
+        title: item.title,
+        expiry: expiryDate,
+        status: getExpiryStatus(expiryDate),
+      };
+    });
 
-        return {
-          _id: item._id,
-          title: item.title,
-          expiry: expiryDate,
-          status: getExpiryStatus(expiryDate),
-        };
-      });
-
-      setItems(parsedItems);
-    } catch (error) {
-      console.error("Error fetching items:", error);
-    }
+    setItems(parsedItems);
   }
 
   async function handleDelete(id: string): Promise<void> {
-    try {
-      await axios.delete(
-        `https://thefridge-api.karapincha.io/fridge/${id}`
-      );
-      await fetchItems();
-    } catch (error) {
-      console.error("Error deleting item:", error);
-    }
+    await axios.delete(`https://thefridge-api.karapincha.io/fridge/${id}`);
+    fetchItems();
   }
 
-  async function handleSubmit(e: React.FormEvent): Promise<void> {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     if (!title || !expiry) return;
 
-    try {
-      if (mode === "Create") {
-        await axios.post("https://thefridge-api.karapincha.io/fridge", {
-          title,
-          expiry,
-        });
-      }
-
-      if (mode === "Edit" && editingId) {
-        await axios.put(
-          `https://thefridge-api.karapincha.io/fridge/${editingId}`,
-          { title, expiry }
-        );
-      }
-
-      setTitle("");
-      setExpiry("");
-      setMode("Create");
-      setEditingId(null);
-
-      await fetchItems();
-    } catch (error) {
-      console.error("Error saving item:", error);
+    if (mode === "Create") {
+      await axios.post("https://thefridge-api.karapincha.io/fridge", {
+        title,
+        expiry,
+      });
     }
+
+    if (mode === "Edit" && editingId) {
+      await axios.put(
+        `https://thefridge-api.karapincha.io/fridge/${editingId}`,
+        { title, expiry }
+      );
+    }
+
+    setTitle("");
+    setExpiry("");
+    setMode("Create");
+    setEditingId(null);
+    fetchItems();
   }
 
-  function handleEdit(item: FridgeList): void {
+  function handleEdit(item: FridgeList) {
     setTitle(item.title);
     setExpiry(item.expiry.toISOString().split("T")[0]);
     setEditingId(item._id);
@@ -88,65 +71,111 @@ function App() {
   }
 
   return (
-    <>
-      <div>
-        <h1>Good Morning, Jonny!</h1>
-        <p>🌤 It's better to go shopping before this Friday</p>
+    <div className="min-h-screen bg-slate-50 px-6 py-10">
+      {/* Header */}
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-semibold text-slate-900">
+          Good Morning, Jonny!
+        </h1>
+        <p className="mt-2 text-sm text-slate-500">
+          🌤 It&apos;s better to go shopping before this Friday
+        </p>
       </div>
 
-      <div>
-        <form onSubmit={handleSubmit}>
+      {/* Form Card */}
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+        >
           <div>
-            <label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
               🍉 Item Name
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
             </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"
+            />
           </div>
 
           <div>
-            <label>
+            <label className="block text-xs font-medium text-slate-600 mb-1">
               ⏰ Expiry Date
-              <input
-                type="date"
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-              />
             </label>
+            <input
+              type="date"
+              value={expiry}
+              onChange={(e) => setExpiry(e.target.value)}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"
+            />
           </div>
 
-          <button type="submit">
-            {mode === "Create" ? "Add To Fridge" : "Update Item"}
+          <button
+            type="submit"
+            className="h-10 rounded-md bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition"
+          >
+            {mode === "Create" ? "ADD TO FRIDGE" : "UPDATE ITEM"}
           </button>
         </form>
+
+        <p className="mt-3 text-xs text-slate-400">
+          ⚠️ We don’t want more than one piece of the same food in our fridge.
+        </p>
       </div>
 
-      <div>
-        <ul>
-          {items.map((item) => (
-            <li key={item._id} onClick={() => handleEdit(item)}>
-              <strong>{item.title}</strong>
-              <br />
-              Expiry Date - {item.expiry.toLocaleDateString()}
-              <br />
-              {item.status}
-              <br />
+      {/* List Header */}
+      <div className="max-w-4xl mx-auto flex justify-end text-xs text-slate-500 mb-2">
+        Total items — {items.length.toString().padStart(2, "0")}
+      </div>
+
+      {/* Items List */}
+      <ul className="max-w-4xl mx-auto space-y-3">
+        {items.map((item) => (
+          <li
+            key={item._id}
+            onClick={() => handleEdit(item)}
+            className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-50"
+          >
+            <div>
+              <p className="text-sm font-medium text-slate-900">
+                {item.title}
+              </p>
+              <p className="text-xs text-slate-500">
+                Expiry date — {item.expiry.toLocaleDateString()}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium
+                  ${
+                    item.status === "Expired"
+                      ? "bg-red-100 text-red-700"
+                      : item.status === "Expiring Soon"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-green-100 text-green-700"
+                  }
+                `}
+              >
+                {item.status}
+              </span>
+
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(item._id);
                 }}
+                className="text-slate-400 hover:text-red-600"
               >
-                delete
+                🗑
               </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

@@ -9,6 +9,17 @@ type DeleteAlertProps = {
   handleDelete:(id:string)=>Promise<void>
 }
 function DeleteAlert({showDeleteAlert, setShowDeleteAlert, deleteId, setDeleteId, handleDelete}:DeleteAlertProps) {
+  
+  function CanelDelete(){
+    setShowDeleteAlert(false);
+                  setDeleteId(null);
+  }
+  async function ConfirmDelete(){
+                  if (deleteId) await handleDelete(deleteId);
+                  setShowDeleteAlert(false);
+                  setDeleteId(null);
+  }
+  
   return (
     <>
     {showDeleteAlert && (
@@ -25,19 +36,12 @@ function DeleteAlert({showDeleteAlert, setShowDeleteAlert, deleteId, setDeleteId
 
             <div className="mt-6 flex justify-end gap-3">
               <Button type="button"
-              onClick={() => {
-                  setShowDeleteAlert(false);
-                  setDeleteId(null);
-                }}
+              onClick={CanelDelete}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
               children="Cancel" />
 
               <Button type="button"
-                onClick={async () => {
-                  if (deleteId) await handleDelete(deleteId);
-                  setShowDeleteAlert(false);
-                  setDeleteId(null);
-                }}
+                onClick={ConfirmDelete}
                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
                 children="Delete"
               />  

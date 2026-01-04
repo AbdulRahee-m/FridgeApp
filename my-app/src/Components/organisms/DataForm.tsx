@@ -21,8 +21,8 @@ function DataForm({handleSubmit, title, setTitle, expiry, setExpiry,mode,resetTo
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
         >
-        <DataFormField topic="🍉 Item Name" Data={title} setData={setTitle} />  
-        <DataFormField topic="⏰ Expiry Date" Data={expiry} setData={setExpiry} />
+        <DataFormField topic="🍉 Item Name" type="text"Data={title} setData={setTitle} />  
+        <DataFormField topic="⏰ Expiry Date" type="date" Data={expiry} setData={setExpiry} />
         
         <div className="flex gap-3">
           <Button type="submit" className="h-10 rounded-md bg-blue-700 px-4 text-white text-sm font-semibold hover:bg-blue-800"
